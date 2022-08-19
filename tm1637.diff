@@ -1,0 +1,86 @@
+diff -r old/tm1637.go new/tm1637.go
+4a5,8
+> // 20220819/places.sweden@gmail.com:
+> // - Changed bit banging pin level strategy to High() and Low() to make it work
+> //   for all kind of bords, not just Arduino AVR.
+> // - Changed bit masking tecnique in writeByte()
+24c28
+< // Configure sets up the pins.
+---
+> // Configure sets up the pins (for output only)
+26,29c30,33
+< 	pinMode(d.clk, false)
+< 	pinMode(d.dio, false)
+< 	d.clk.Low() // required for future pull-down
+< 	d.dio.Low() // required for future pull-down
+---
+> 	d.clk.Configure(machine.PinConfig{Mode: machine.PinOutput})
+> 	d.dio.Configure(machine.PinConfig{Mode: machine.PinOutput})
+> 	d.clk.Low()
+> 	d.dio.Low()
+151,162d154
+< func pinMode(pin machine.Pin, mode bool) {
+< 	// TM1637 has internal pull-up resistors for both CLK and DIO pins.
+< 	// Set them to input mode will pull them high,
+< 	// and set them to output mode will pull them down
+< 	// (since we did so in the beginning.)
+< 	// The High()/Low() method don't work on some boards.
+< 	if mode {
+< 		pin.Configure(machine.PinConfig{Mode: machine.PinInput})
+< 	} else {
+< 		pin.Configure(machine.PinConfig{Mode: machine.PinOutput})
+< 	}
+< }
+165c157,159
+< 	pinMode(d.dio, false)
+---
+> 	d.dio.Low()
+> 	delaytm()
+> 	d.clk.Low()
+167d160
+< 	pinMode(d.clk, false)
+171c164
+< 	pinMode(d.dio, false)
+---
+> 	d.dio.Low()
+173c166
+< 	pinMode(d.clk, true)
+---
+> 	d.clk.High()
+175c168
+< 	pinMode(d.dio, true)
+---
+> 	d.dio.High()
+180c173,177
+< 		pinMode(d.dio, data&(1<<i) > 0) // send bits from LSB to MSB
+---
+> 		if ((data >> i) & 1) == 1 {     // New way of masking bits
+> 			d.dio.High()
+> 		} else {
+> 			d.dio.Low()
+> 		}
+182c179
+< 		pinMode(d.clk, true)
+---
+> 		d.clk.High()
+184c181
+< 		pinMode(d.clk, false)
+---
+> 		d.clk.Low()
+186,187c183,184
+< 	}
+< 	pinMode(d.clk, false)
+---
+> 	} // end for
+> 	d.clk.Low()
+189c186,188
+< 	pinMode(d.clk, true)
+---
+> 	d.clk.High()
+> 	delaytm()
+> 	d.clk.Low()
+191d189
+< 	pinMode(d.clk, false)
+215a214,215
+> 
+> // EOF
